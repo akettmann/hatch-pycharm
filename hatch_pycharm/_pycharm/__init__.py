@@ -50,7 +50,7 @@ def make_open_file_command(*files: Iterable[FileRef | Path]) -> Iterable[str]:
     # Making it a list of FileRef instead of FileRef or paths
     files: list[FileRef] = [p if isinstance(p, FileRef) else FileRef(p) for p in files]
     cmd = [_PYCHARM]
-    cmd.extend(*chain(map(FileRef.command_args, files)))
+    cmd.extend(chain(map(FileRef.command_args, files)))
     return cmd
 
 
