@@ -10,6 +10,8 @@
 - [Installation](#installation)
 - [License](#license)
 
+# This is early alpha stages, don't use it.
+
 ## Installation
 
 ```console
