@@ -91,7 +91,7 @@ def make_format_files_command(
     allow_defaults: bool = False,
     charset: str = None,
     dry: bool = False,
-):
+) -> Iterable[str]:
     """
     Runs PyCharm, asking for formatting of N number of paths
     ref: https://www.jetbrains.com/help/pycharm/command-line-formatter.html
@@ -121,6 +121,7 @@ def make_format_files_command(
     if dry:
         cmd.append("-dry")
     cmd.extend(map(str, files))
+    return cmd
 
 
 if __name__ == "__main__":
