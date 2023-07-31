@@ -5,7 +5,7 @@ import shutil
 from collections.abc import Iterable
 from itertools import chain
 from pathlib import Path
-from typing import NamedTuple
+from typing import NamedTuple, Literal
 
 from hatch_pycharm._pycharm.jetbrains import find_executable as jb_find
 from hatch_pycharm._pycharm.paths import platform_search_paths, platform_exe_name
@@ -19,7 +19,6 @@ def locate_pycharm():
     pycharm = shutil.which(platform_exe_name())
     if not pycharm:
         log.info(f"We didn't find an exe on system path, looking elsewhere")
-
         tb_exes = [tb_find(fp) for fp in platform_search_paths()]
         jb_exes = [jb_find(fp) for fp in platform_search_paths()]
         exes_found = list(filter(None, tb_exes + jb_exes))
@@ -29,6 +28,7 @@ def locate_pycharm():
 
 
 _PYCHARM = str(locate_pycharm())
+FMT = Literal["xml", "json", "plain"]
 
 
 class FileRef(NamedTuple):
@@ -121,6 +121,33 @@ def make_format_files_command(
     if dry:
         cmd.append("-dry")
     cmd.extend(map(str, files))
+    return cmd
+
+
+def make_code_inspections_command(
+    project: Path,
+    inspection_profile: Path,
+    output: Path,
+    changes: bool = False,
+    subdirectory: Path = None,
+    format_: FMT = "xml",
+    verbosity: int = None,
+) -> Iterable[str]:
+    """
+    Runs PyCharm, asking for code inspections of a project
+    ref: https://www.jetbrains.com/help/pycharm/command-line-formatter.html
+    There are options to change behavior, consult the reference linked
+
+    :return:
+    """
+    cmd = [_PYCHARM, "inspect", str(project), str(inspection_profile), str(output)]
+    if changes:
+        cmd.append("-changes")
+    if subdirectory:
+        cmd.extend(("-d", str(subdirectory)))
+    cmd.extend(("-format", format_))
+    if verbosity:
+        cmd.append(f"-v{verbosity}")
     return cmd
 
 
