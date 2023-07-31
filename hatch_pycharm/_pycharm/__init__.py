@@ -3,6 +3,7 @@
 import logging
 import shutil
 from collections.abc import Iterable
+from functools import wraps
 from itertools import chain
 from pathlib import Path
 from typing import NamedTuple, Literal
@@ -46,6 +47,18 @@ class FileRef(NamedTuple):
             yield str(self.column)
 
 
+def log_command(f):
+    @wraps(f)
+    def inner(*args, **kwargs):
+        log.debug("Function %s received the args `%s` and the kwargs `%s`", args, kwargs)
+        res = f(*args, **kwargs)
+        log.debug("Function %s created the command %s", f.__name__, res)
+        return res
+
+    return inner
+
+
+@log_command
 def make_open_file_command(*files: FileRef | Path) -> Iterable[str]:
     # Making it a list of FileRef instead of FileRef or paths
     files: list[FileRef] = [p if isinstance(p, FileRef) else FileRef(p) for p in files]
@@ -148,6 +161,22 @@ def make_code_inspections_command(
     cmd.extend(("-format", format_))
     if verbosity:
         cmd.append(f"-v{verbosity}")
+    return cmd
+
+
+def make_install_plugins_command(*plugins: str) -> Iterable[str]:
+    """
+    Runs PyCharm, asking installation of plugins either by plugin-id or repository-url
+    ref: https://www.jetbrains.com/help/pycharm/install-plugins-from-the-command-line.html
+    So much potential for a hatch hook into PyCharm and managing the environment smoothly
+    Combined with potentially reading state out of the IDE's directories
+    ref: https://www.jetbrains.com/help/pycharm/directories-used-by-the-ide-to-store-settings-caches-plugins-and-logs.html
+    ref: https://www.jetbrains.com/help/pycharm/file-idea-properties.html
+
+    :return:
+    """
+    cmd = [_PYCHARM, "installPlugins"]
+    cmd.extend(map(str, plugins))
     return cmd
 
 
