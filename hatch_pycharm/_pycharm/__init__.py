@@ -67,6 +67,7 @@ def make_open_file_command(*files: FileRef | Path) -> Iterable[str]:
     return cmd
 
 
+@log_command
 def make_compare_file_command(path1: Path, path2: Path, path3: Path = None) -> Iterable[str]:
     """
     Runs Pycharm, asking for a diff between two or three files.
@@ -78,6 +79,7 @@ def make_compare_file_command(path1: Path, path2: Path, path3: Path = None) -> I
     return cmd
 
 
+@log_command
 def make_merge_file_command(path1: Path, path2: Path, output: Path, base: Path = None) -> Iterable[str]:
     """
     Runs PyCharm, asking for a merge between two or three files.
@@ -96,6 +98,7 @@ def make_merge_file_command(path1: Path, path2: Path, output: Path, base: Path =
     return cmd
 
 
+@log_command
 def make_format_files_command(
     *files: Path,
     masks: Iterable[str] = (),
@@ -137,6 +140,7 @@ def make_format_files_command(
     return cmd
 
 
+@log_command
 def make_code_inspections_command(
     project: Path,
     inspection_profile: Path,
@@ -164,6 +168,7 @@ def make_code_inspections_command(
     return cmd
 
 
+@log_command
 def make_install_plugins_command(*plugins: str) -> Iterable[str]:
     """
     Runs PyCharm, asking installation of plugins either by plugin-id or repository-url
