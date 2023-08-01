@@ -53,7 +53,7 @@ cov = [
   "cov-report",
 ]
 inject = 'C:\Users\veigar\AppData\Local\Programs\Python\Python311\Scripts\pipx.exe inject hatch .'
-uninject = 'C:\Users\veigar\AppData\Local\Programs\Python\Python311\Scripts\pipx.exe uninject hatch hatch-pycharm'
+uninject = 'C:\Users\veigar\AppData\Local\Programs\Python\Python311\Scripts\pipx.exe uninject hatch hatch-pycharm --leave-deps'
 
 [[tool.hatch.envs.all.matrix]]
 python = ["3.7", "3.8", "3.9", "3.10", "3.11"]
