@@ -9,8 +9,10 @@ from tempfile import TemporaryDirectory
 
 import pytest
 
+ROOT = Path(__file__).parent.parent
 
-@pytest.fixture(name="plugin_dir", scope="session")
+
+@pytest.fixture(name="plugin_dir")
 def _plugin_dir():
     """
     Install the plugin into a temporary directory with a random path to
@@ -21,12 +23,12 @@ def _plugin_dir():
     """
     with TemporaryDirectory() as d:
         directory = Path(d, "plugin")
-        shutil.copytree(Path.cwd() / "hatch_pycharm", directory / "hatch_pycharm")
+        shutil.copytree(ROOT / "hatch_pycharm", directory / "hatch_pycharm")
         for fn in [
             "pyproject.toml",
             "README.md",
         ]:
-            shutil.copy(Path.cwd() / fn, directory / fn)
+            shutil.copy(ROOT / fn, directory / fn)
 
         yield directory.resolve()
 

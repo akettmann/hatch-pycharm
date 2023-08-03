@@ -6,11 +6,12 @@ from collections.abc import Iterable
 from functools import wraps
 from itertools import chain
 from pathlib import Path
-from typing import NamedTuple, Literal
+from typing import NamedTuple
 
 from hatch_pycharm._pycharm.jetbrains import find_executable as jb_find
 from hatch_pycharm._pycharm.paths import platform_search_paths, platform_exe_name
 from hatch_pycharm._pycharm.toolbox import find_executable as tb_find
+from hatch_pycharm._pycharm.types import FMT
 
 log = logging.getLogger(__name__)
 
@@ -29,7 +30,6 @@ def locate_pycharm():
 
 
 _PYCHARM = str(locate_pycharm())
-FMT = Literal["xml", "json", "plain"]
 
 
 class FileRef(NamedTuple):
