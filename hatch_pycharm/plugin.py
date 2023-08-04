@@ -30,18 +30,18 @@ class PycharmTemplate(TemplateInterface):
     PLUGIN_NAME = "pycharm"
 
     @staticmethod
-    def copy_what_new_does(name, location, initialize):
-        """Copy pasted the load bearing parts from the hatch code. Shamelessly."""
-        if location:
-            location = Path(location).resolve()
-        if initialize:
-            location = location or Path.cwd()
-        if not location:
-            from hatch.project.core import Project
+    def read_location() -> str:
+        """
+        Returns the location of the calling function, by inspecting my parent frame's local variables
+        """
+        import inspect
 
-            normalized_name = Project.canonicalize_name(name, strict=False)
-            location = Path(normalized_name).resolve()
-        return location
+        frame = inspect.currentframe()
+        try:
+            context = inspect.getouterframes(frame)[1].frame.f_locals
+            return context.get("location")
+        finally:
+            del frame
 
     def finalize_files(self, config, files):
         """We aren't finalizing anything, we are just registering a call on close hook"""
@@ -49,13 +49,7 @@ class PycharmTemplate(TemplateInterface):
 
         # Get the execution context from Click
         ctx = get_current_context()
-        # Get the params we need from the context
-        name = ctx.params.get("name")
-        location = ctx.params.get("location")
-        initialize = ctx.params.get("initialize")
-        # Get the processed version of location based on one reading of the code one time
-        # This isn't fragile!!!
-        location = self.copy_what_new_does(name, location, initialize)
+        location = self.read_location()
         # Tell Click to call us when this context is done (When the new command is closed out)
         ctx.call_on_close(partial(open_pycharm, location))
 

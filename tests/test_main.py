@@ -8,25 +8,31 @@ class TestException(BaseException):
     pass
 
 
-@pytest.fixture(autouse=True)
-def no_subprocess_run(monkeypatch):
+@pytest.fixture()
+def mock_run(monkeypatch):
+    from unittest.mock import create_autospec
+
     original_subprocess_run = subprocess.run
     # noinspection PyProtectedMember
     import hatch_pycharm._pycharm.paths as paths
 
     platform_name = paths.platform_exe_name()
 
-    def mock_subprocess_run(*args, **kwargs):
+    def mock_func(*args, **kwargs):
         if args and args[0] and args[0][0].endswith(platform_name):
             msg = f"subprocess.run was called with '{paths.platform_exe_name()}'"
             raise TestException(msg)
         else:
             return original_subprocess_run(*args, **kwargs)
 
+    from subprocess import run
+
+    mock_subprocess_run = create_autospec(run, side_effect=mock_func)
     monkeypatch.setattr(subprocess, "run", mock_subprocess_run)
+    yield mock_subprocess_run
 
 
-def test_subprocess_run_is_called(new_project):
+def test_subprocess_run_is_called(new_project, mock_run):
     """
     .. function:: test_subprocess_run_is_called(new_project) -> None
 
@@ -46,3 +52,4 @@ def test_subprocess_run_is_called(new_project):
     with pytest.raises(TestException):
         # noinspection PyTypeChecker
         runner.invoke(hatch, ["run", "echo", "a"], catch_exceptions=False)
+    mock_run
