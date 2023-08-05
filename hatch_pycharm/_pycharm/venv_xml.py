@@ -1,12 +1,15 @@
+import json
 import logging
 import re
 import subprocess
 import sysconfig
+import uuid
 from dataclasses import dataclass, field
 from functools import cached_property
 from itertools import chain
 from pathlib import Path
 from typing import Iterable, ClassVar
+from uuid import UUID
 from xml.etree.ElementTree import Element, SubElement, tostring
 
 from hatch_pycharm._pycharm import pycharm_exe, app_root, plugins_folder
@@ -92,6 +95,8 @@ class PythonConfigVars:
 class PyCharmVenv:
     name: str
     exe_loc: Path
+    associated_project_path: Path
+    sdk_uuid: UUID = field(default_factory=uuid.uuid4)
     type: str = "Python SDK"
     root_type: str = "composite"
     flavor_id: str = "VirtualEnvSdkFlavor"
@@ -117,7 +122,7 @@ class PyCharmVenv:
         msg = f"parsing version string from `{self._exe_version}` failed!"
         raise RuntimeError(msg)
 
-    def _make_path_relative_to_pycharm_vars(self, path: Path):
+    def _make_path_relative_to_pycharm_vars(self, path: Path) -> str:
         """
         :param path: The path that needs to be made relative to PyCharm variables. :return: The path made relative to
         PyCharm variables. If the given path is already relative to any of the PyCharm variables, it returns the path
@@ -164,6 +169,11 @@ class PyCharmVenv:
         return tostring(self._build_jdk_element(), "utf-8").decode("UTF-8")
 
     def _build_jdk_element(self) -> Element:
+        """
+        Builds an XML element representing a JDK in the PyCharm project configuration.
+
+        :return: The XML element representing the JDK
+        """
         jdk = Element("jdk", version="2")
 
         SubElement(jdk, "name", value=self.name)
@@ -180,7 +190,21 @@ class PyCharmVenv:
 
         sourcePath = SubElement(roots, "sourcePath")
         SubElement(sourcePath, "root", type="composite")
+        # the `additional` element, contains the project path and UUID
+        jdk.append(self._build_additional_element())
         return jdk
+
+    def _build_additional_element(self) -> Element:
+        element = Element(
+            "additional",
+            attrib={
+                "ASSOCIATED_PROJECT_PATH": self._make_path_relative_to_pycharm_vars(self.associated_project_path),
+                "SDK_UUID": str(self.sdk_uuid),
+            },
+        )
+        SubElement(element, "setting", attrib={"name": "FLAVOR_ID", "VALUE": self.flavor_id})
+        SubElement(element, "setting", attrib={"name": "FLAVOR_DATA", "VALUE": json.dumps(self.flavor_data)})
+        return element
 
     def build_misc_xml(self) -> str:
         """Goes to the .idea/misc.xml file"""

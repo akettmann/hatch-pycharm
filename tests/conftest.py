@@ -74,10 +74,10 @@ type = "pycharm"
 
 
 @pytest.fixture
-def test_venv() -> "PyCharmVenv":
+def current_project_venv() -> "PyCharmVenv":
     from hatch_pycharm._pycharm.venv_xml import PyCharmVenv
 
-    yield PyCharmVenv("", Path(sys.executable))
+    yield PyCharmVenv("Python 3.11 (hatch-pycharm)", Path(sys.executable), ROOT)
 
 
 @pytest.fixture
