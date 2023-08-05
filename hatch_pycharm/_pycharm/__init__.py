@@ -29,7 +29,10 @@ def locate_pycharm():
     return pycharm
 
 
-_PYCHARM = str(locate_pycharm())
+pycharm_exe = locate_pycharm()
+app_root = pycharm_exe.parent.parent
+plugins_folder = app_root / "plugins"
+_PYCHARM = str(pycharm_exe)
 
 
 class FileRef(NamedTuple):

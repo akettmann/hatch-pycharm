@@ -315,10 +315,21 @@ def jdk_element() -> Element:
 
 
 @pytest.fixture
-def misc_element() -> Element:
+def misc_element_static() -> Element:
     return fromstring(
         r"""<?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.11 (hatch-pycharm)" project-jdk-type="Python SDK" />
 </project>"""
     )
+
+
+@pytest.fixture()
+def current_project_misc_file() -> Element:
+    misc_file = ROOT / ".idea" / "misc.xml"
+    yield fromstring(misc_file.read_text())
+
+
+@pytest.fixture()
+def current_project_tools_jdk_file() -> Element:
+    pass

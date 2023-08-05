@@ -1,6 +1,7 @@
 import logging
 import re
 import subprocess
+import sysconfig
 from dataclasses import dataclass, field
 from functools import cached_property
 from itertools import chain
@@ -8,7 +9,7 @@ from pathlib import Path
 from typing import Iterable, ClassVar
 from xml.etree.ElementTree import Element, SubElement, tostring
 
-from hatch_pycharm._pycharm import _PYCHARM
+from hatch_pycharm._pycharm import pycharm_exe, app_root, plugins_folder
 
 log = logging.getLogger(__name__)
 
@@ -82,6 +83,10 @@ class PythonConfigVars:
 
         return cls(**json.loads(config_vars))
 
+    @classmethod
+    def from_current_interpreter(cls):
+        return cls(**sysconfig.get_config_vars())
+
 
 @dataclass()
 class PyCharmVenv:
@@ -135,7 +140,7 @@ class PyCharmVenv:
         :param self: The `PyCharmVenv` object.
         :return: An iterable of tuples containing Java environment variables and their corresponding values.
         """
-        yield "APPLICATION_HOME_DIR", self.app_home_dir()
+        yield "APPLICATION_HOME_DIR", app_root
         yield "USER_HOME", Path("~").expanduser()
 
     def _build_roots(self) -> Iterable[dict[str, str]]:
@@ -145,7 +150,7 @@ class PyCharmVenv:
 
     def _helpers_dir_roots(self) -> Iterable[Path]:
         """Walks the $APP_HOME_DIR/plugins/python/helpers dir to build part of the `root` objects"""
-        helpers = self.app_home_dir() / "plugins/python/helpers"
+        helpers = plugins_folder / "python/helpers"
         assert helpers.is_dir()
         type_shed = helpers / "typeshed"
         yield helpers / "python-skeletons"
@@ -153,12 +158,6 @@ class PyCharmVenv:
         stubs_dir = type_shed / "stubs"
         assert stubs_dir.is_dir()
         yield from filter(lambda x: x.is_dir(), stubs_dir.iterdir())
-
-    def app_home_dir(self) -> Path:
-        base = Path(_PYCHARM)
-        app_home_dir = base.parent.parent
-        assert app_home_dir.is_dir()
-        return app_home_dir
 
     def build_jdk_xml(self) -> str:
         """Goes to  $PycharmConfig/options/jdk.table.xml"""
@@ -206,4 +205,5 @@ class PyCharmVenv:
     def _python_roots(self):
         """We are asking the Python for its paths"""
         return
+        # noinspection PyUnreachableCode
         yield

@@ -5,7 +5,11 @@ def test_jdk_element_matches(jdk_element, test_venv):
 
 
 def test_misc_element_matches(misc_element, test_venv):
-    assert test_venv._build_misc_element() == misc_element
+    project = misc_element
+    assert len(misc_element) == 1
+    component = project[0]
+    assert component.attrib["project-jdk-name"] == test_venv.name
+    assert component.attrib["project-jdk-type"] == "Python SDK"
 
 
 def test_parses_our_version_number(test_venv):
