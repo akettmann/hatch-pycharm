@@ -16,7 +16,7 @@ def mock_run(monkeypatch) -> MagicMock:
 
     original_subprocess_run = subprocess.run
     # noinspection PyProtectedMember
-    import hatch_pycharm._pycharm.paths as paths
+    import hatch_pycharm._pycharm.platform_paths as paths
 
     platform_name = paths.platform_exe_name()
 

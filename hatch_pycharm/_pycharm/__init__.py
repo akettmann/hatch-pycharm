@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import NamedTuple
 
 from hatch_pycharm._pycharm.jetbrains import find_executable as jb_find
-from hatch_pycharm._pycharm.paths import platform_search_paths, platform_exe_name
+from hatch_pycharm._pycharm.platform_paths import platform_search_paths, platform_exe_name
 from hatch_pycharm._pycharm.toolbox import find_executable as tb_find
 from hatch_pycharm._pycharm.types import FMT
 

@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any, Iterable
 import re
 
-from hatch_pycharm._pycharm.paths import platform_exe_name
+from hatch_pycharm._pycharm.platform_paths import platform_exe_name
 from hatch_pycharm._pycharm.types import Build_EXE
 
 log = logging.getLogger(__name__)
