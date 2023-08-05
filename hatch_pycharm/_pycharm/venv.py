@@ -1,9 +1,10 @@
 import logging
+import re
 import subprocess
 from dataclasses import dataclass
 from functools import cached_property
 from pathlib import Path
-import re
+from typing import List, Dict, Iterable
 from xml.etree.ElementTree import Element, SubElement, tostring
 
 log = logging.getLogger(__name__)
@@ -15,6 +16,7 @@ class PyCharmVenv:
     exe_loc: Path
     type: str = "Python SDK"
     flavor_id: str = "VirtualEnvSdkFlavor"
+    root_type: str = "composite"
 
     @cached_property
     def _exe_version(self):
@@ -36,17 +38,32 @@ class PyCharmVenv:
         msg = f"parsing version string from `{self._exe_version}` failed!"
         raise RuntimeError(msg)
 
-    def _build_roots(self):
+    def _build_roots(self) -> Iterable[dict[str, str]]:
         """Assemble the paths to add to the Virtual Environment's system path"""
         pass
 
     def build_jdk_xml(self):
         """Goes to  $PycharmConfig/options/jdk.table.xml"""
-        pass
+        return tostring(self._build_jdk_element(), "utf-8").decode("UTF-8")
 
     def _build_jdk_element(self) -> Element:
-        """Returns the ElementTree object for the jdk xml"""
-        pass
+        jdk = Element("jdk", version="2")
+
+        SubElement(jdk, "name", value=self.name)
+        SubElement(jdk, "type", value=self.type)
+        SubElement(jdk, "version", value=self._exe_version)
+        SubElement(jdk, "homePath", value=str(self.exe_loc))
+
+        roots = SubElement(jdk, "roots")
+        classPath = SubElement(roots, "classPath")
+        root_composite = SubElement(classPath, "root", type=self.root_type)
+
+        for elem in self._build_roots():
+            SubElement(root_composite, "root", type=elem["type"], url=f"file://{elem['url']}")
+
+        sourcePath = SubElement(roots, "sourcePath")
+        SubElement(sourcePath, "root", type="composite")
+        return jdk
 
     def build_misc_xml(self) -> str:
         """Goes to the .idea/misc.xml file"""
