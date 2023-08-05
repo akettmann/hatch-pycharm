@@ -12,7 +12,7 @@ from xml.etree.ElementTree import fromstring, Element
 import pytest
 
 if TYPE_CHECKING:
-    from hatch_pycharm._pycharm.venv import PyCharmVenv
+    from hatch_pycharm._pycharm.venv_xml import PyCharmVenv
 ROOT = Path(__file__).parent.parent
 
 
@@ -76,7 +76,7 @@ type = "pycharm"
 
 @pytest.fixture
 def test_venv() -> "PyCharmVenv":
-    from hatch_pycharm._pycharm.venv import PyCharmVenv
+    from hatch_pycharm._pycharm.venv_xml import PyCharmVenv
 
     yield PyCharmVenv("", Path(sys.executable))
 
