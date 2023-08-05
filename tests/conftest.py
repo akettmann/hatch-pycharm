@@ -6,13 +6,12 @@ import shutil
 import sys
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import TYPE_CHECKING
 from xml.etree.ElementTree import fromstring, Element
 
 import pytest
 
-if TYPE_CHECKING:
-    from hatch_pycharm._pycharm.venv_xml import PyCharmVenv
+from hatch_pycharm._pycharm.venv_xml import PyCharmVenv, PythonConfigVars
+
 ROOT = Path(__file__).parent.parent
 
 
@@ -79,6 +78,13 @@ def test_venv() -> "PyCharmVenv":
     from hatch_pycharm._pycharm.venv_xml import PyCharmVenv
 
     yield PyCharmVenv("", Path(sys.executable))
+
+
+@pytest.fixture
+def config_vars() -> "PythonConfigVars":
+    import sysconfig
+
+    return PythonConfigVars(**sysconfig.get_config_vars())
 
 
 @pytest.fixture

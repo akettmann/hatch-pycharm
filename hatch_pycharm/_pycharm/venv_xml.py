@@ -5,12 +5,82 @@ from dataclasses import dataclass, field
 from functools import cached_property
 from itertools import chain
 from pathlib import Path
-from typing import Iterable
+from typing import Iterable, ClassVar
 from xml.etree.ElementTree import Element, SubElement, tostring
 
 from hatch_pycharm._pycharm import _PYCHARM
 
 log = logging.getLogger(__name__)
+
+
+@dataclass()
+class PythonConfigVars:
+    """
+    Represents configuration variables for a Python project.
+
+    :param prefix: The path to the project's prefix directory.
+    :param exec_prefix: The path to the project's exec_prefix directory.
+    :param py_version: The Python version string.
+    :param py_version_short: The short form of the Python version string.
+    :param py_version_nodot: The Python version string without dots.
+    :param installed_base: The path to the installed base directory.
+    :param base: The path to the project's base directory.
+    :param installed_platbase: The path to the installed platbase directory.
+    :param platbase: The path to the project's platbase directory.
+    :param projectbase: The path to the project's projectbase directory.
+    :param platlibdir: The platlib directory name.
+    :param abiflags: ABI flags string.
+    :param py_version_nodot_plat: The Python version string without dots for platbase.
+    :param LIBDEST: The path to the LIBDEST directory.
+    :param BINLIBDEST: The path to the BINLIBDEST directory.
+    :param INCLUDEPY: The path to the INCLUDEPY directory.
+    :param EXT_SUFFIX: The extension suffix string.
+    :param EXE: The executable file extension string.
+    :param VERSION: The version string.
+    :param BINDIR: The path to the BINDIR directory.
+    :param TZPATH: The TZPATH string.
+    :param VPATH: The path to the VPATH directory.
+    :param userbase: The path to the userbase directory.
+    :param srcdir: The path to the srcdir directory.
+    """
+
+    path_json_script: ClassVar[
+        str
+    ] = """\
+    import json
+    import sysconfig
+    import sys
+    json.dump(sysconfig.get_config_vars({keys}), sys.stdout)"""
+    prefix: Path = r"C:\Users\veigar\PycharmProjects\hatch-pycharm\.hatch\hatch-pycharm"
+    exec_prefix: Path = r"C:\Users\veigar\PycharmProjects\hatch-pycharm\.hatch\hatch-pycharm"
+    py_version: str = "3.11.3"
+    py_version_short: str = "3.11"
+    py_version_nodot: str = "311"
+    installed_base: Path = r"C:\Users\veigar\AppData\Local\Programs\Python\Python311"
+    base: Path = r"C:\Users\veigar\PycharmProjects\hatch-pycharm\.hatch\hatch-pycharm"
+    installed_platbase: Path = r"C:\Users\veigar\AppData\Local\Programs\Python\Python311"
+    platbase: Path = r"C:\Users\veigar\PycharmProjects\hatch-pycharm\.hatch\hatch-pycharm"
+    projectbase: Path = r"C:\Users\veigar\AppData\Local\Programs\Python\Python311"
+    platlibdir: str = "DLLs"
+    abiflags: str = ""
+    py_version_nodot_plat: str = "311"
+    LIBDEST: Path = r"C:\Users\veigar\AppData\Local\Programs\Python\Python311\Lib"
+    BINLIBDEST: Path = r"C:\Users\veigar\PycharmProjects\hatch-pycharm\.hatch\hatch-pycharm\Lib"
+    INCLUDEPY: Path = r"C:\Users\veigar\AppData\Local\Programs\Python\Python311\Include"
+    EXT_SUFFIX: str = ".cp311-win_amd64.pyd"
+    EXE: str = ".exe"
+    VERSION: str = "311"
+    BINDIR: Path = r"C:\Users\veigar\PycharmProjects\hatch-pycharm\.hatch\hatch-pycharm\Scripts"
+    TZPATH: str = ""
+    VPATH: Path = r"..\.."
+    userbase: Path = r"C:\Users\veigar\AppData\Roaming\Python"
+    srcdir: Path = r"C:\Users\veigar\AppData\Local\Programs\Python\Python311"
+
+    @classmethod
+    def from_json_str(cls, config_vars: str | bytes):
+        import json
+
+        return cls(**json.loads(config_vars))
 
 
 @dataclass()
@@ -134,5 +204,6 @@ class PyCharmVenv:
         return project
 
     def _python_roots(self):
+        """We are asking the Python for its paths"""
         return
         yield
