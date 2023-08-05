@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: MIT
 
 import shutil
+import sys
 
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -69,6 +70,13 @@ type = "pycharm"
     monkeypatch.chdir(project_dir)
 
     return project_dir
+
+
+@pytest.fixture
+def test_venv():
+    from hatch_pycharm._pycharm import venv
+
+    yield venv.PyCharmVenv(Path(sys.executable), sys.version)
 
 
 @pytest.fixture
