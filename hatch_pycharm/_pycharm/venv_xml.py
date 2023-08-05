@@ -1,12 +1,13 @@
 import logging
 import re
 import subprocess
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import cached_property
 from itertools import chain
 from pathlib import Path
 from typing import Iterable
 from xml.etree.ElementTree import Element, SubElement, tostring
+
 from hatch_pycharm._pycharm import _PYCHARM
 
 log = logging.getLogger(__name__)
@@ -17,8 +18,9 @@ class PyCharmVenv:
     name: str
     exe_loc: Path
     type: str = "Python SDK"
-    flavor_id: str = "VirtualEnvSdkFlavor"
     root_type: str = "composite"
+    flavor_id: str = "VirtualEnvSdkFlavor"
+    flavor_data: dict = field(default_factory=dict)
 
     @cached_property
     def _exe_version(self):
@@ -50,7 +52,7 @@ class PyCharmVenv:
         path = path.expanduser().resolve()
         for var_name, var_path in self._java_vars():
             if path.absolute().is_relative_to(var_path):
-                return f"${var_name.upper()}${path.relative_to(var_path)}"
+                return f"${var_name.upper()}$/{path.relative_to(var_path).as_posix()}"
         return f"{path}"
 
     def _java_vars(self) -> Iterable[tuple[str, Path]]:
@@ -68,8 +70,8 @@ class PyCharmVenv:
 
     def _build_roots(self) -> Iterable[dict[str, str]]:
         """Assemble the paths to add to the Virtual Environment's system path"""
-        for root in chain((self._python_roots(), self._helpers_dir_roots())):
-            yield {"url": f"file:///{root}", "type": "simple"}
+        for root in chain(self._python_roots(), self._helpers_dir_roots()):
+            yield {"url": f"file://{self._make_path_relative_to_pycharm_vars(root)}", "type": "simple"}
 
     def _helpers_dir_roots(self) -> Iterable[Path]:
         """Walks the $APP_HOME_DIR/plugins/python/helpers dir to build part of the `root` objects"""
@@ -132,4 +134,5 @@ class PyCharmVenv:
         return project
 
     def _python_roots(self):
-        pass
+        return
+        yield
