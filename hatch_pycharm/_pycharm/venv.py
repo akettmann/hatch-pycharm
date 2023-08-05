@@ -3,8 +3,9 @@ import re
 import subprocess
 from dataclasses import dataclass
 from functools import cached_property
+from itertools import chain
 from pathlib import Path
-from typing import List, Dict, Iterable
+from typing import Iterable
 from xml.etree.ElementTree import Element, SubElement, tostring
 
 log = logging.getLogger(__name__)
@@ -40,7 +41,11 @@ class PyCharmVenv:
 
     def _build_roots(self) -> Iterable[dict[str, str]]:
         """Assemble the paths to add to the Virtual Environment's system path"""
-        pass
+        for root in chain((self._python_roots(), self._helpers_dir_roots())):
+            yield {"url": f"file:///{root}", "type": "simple"}
+
+    def _helpers_dir_roots(self) -> Iterable[Path]:
+        """Walks the $APP_HOME_DIR/plugins/python/helpers dir to build part of the `root` objects"""
 
     def build_jdk_xml(self):
         """Goes to  $PycharmConfig/options/jdk.table.xml"""
@@ -84,3 +89,6 @@ class PyCharmVenv:
         )
 
         return project
+
+    def _python_roots(self):
+        pass
