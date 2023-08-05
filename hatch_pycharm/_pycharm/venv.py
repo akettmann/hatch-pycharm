@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from functools import cached_property
 from pathlib import Path
 import re
-from xml.etree.ElementTree import Element, SubElement
+from xml.etree.ElementTree import Element, SubElement, tostring
 
 log = logging.getLogger(__name__)
 
@@ -48,9 +48,9 @@ class PyCharmVenv:
         """Returns the ElementTree object for the jdk xml"""
         pass
 
-    def build_misc_xml(self):
+    def build_misc_xml(self) -> str:
         """Goes to the .idea/misc.xml file"""
-        pass
+        return tostring(self._build_misc_element(), "utf-8").decode("UTF-8")
 
     def _build_misc_element(self) -> Element:
         """Returns the ElementTree object for the tree xml"""
