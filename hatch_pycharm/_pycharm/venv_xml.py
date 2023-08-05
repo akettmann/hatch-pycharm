@@ -40,6 +40,32 @@ class PyCharmVenv:
         msg = f"parsing version string from `{self._exe_version}` failed!"
         raise RuntimeError(msg)
 
+    def _make_path_relative_to_pycharm_vars(self, path: Path):
+        """
+        :param path: The path that needs to be made relative to PyCharm variables. :return: The path made relative to
+        PyCharm variables. If the given path is already relative to any of the PyCharm variables, it returns the path
+        with the variable name as a prefix. Otherwise, it returns the original path.
+
+        """
+        path = path.expanduser().resolve()
+        for var_name, var_path in self._java_vars():
+            if path.absolute().is_relative_to(var_path):
+                return f"${var_name.upper()}${path.relative_to(var_path)}"
+        return f"{path}"
+
+    def _java_vars(self) -> Iterable[tuple[str, Path]]:
+        """
+        Returns an iterable of tuples containing Java environment variables and their corresponding values.
+
+        Each tuple in the iterable consists of a string representing the name of the Java environment variable and a
+        `Path` object representing its value.
+
+        :param self: The `PyCharmVenv` object.
+        :return: An iterable of tuples containing Java environment variables and their corresponding values.
+        """
+        yield "APPLICATION_HOME_DIR", self.app_home_dir()
+        yield "USER_HOME", Path("~").expanduser()
+
     def _build_roots(self) -> Iterable[dict[str, str]]:
         """Assemble the paths to add to the Virtual Environment's system path"""
         for root in chain((self._python_roots(), self._helpers_dir_roots())):
@@ -47,8 +73,7 @@ class PyCharmVenv:
 
     def _helpers_dir_roots(self) -> Iterable[Path]:
         """Walks the $APP_HOME_DIR/plugins/python/helpers dir to build part of the `root` objects"""
-        base = Path(_PYCHARM)
-        helpers = base.parent.parent / "plugins" / "python" / "helpers"
+        helpers = self.app_home_dir() / "plugins/python/helpers"
         assert helpers.is_dir()
         type_shed = helpers / "typeshed"
         yield helpers / "python-skeletons"
@@ -57,7 +82,13 @@ class PyCharmVenv:
         assert stubs_dir.is_dir()
         yield from filter(lambda x: x.is_dir(), stubs_dir.iterdir())
 
-    def build_jdk_xml(self):
+    def app_home_dir(self) -> Path:
+        base = Path(_PYCHARM)
+        app_home_dir = base.parent.parent
+        assert app_home_dir.is_dir()
+        return app_home_dir
+
+    def build_jdk_xml(self) -> str:
         """Goes to  $PycharmConfig/options/jdk.table.xml"""
         return tostring(self._build_jdk_element(), "utf-8").decode("UTF-8")
 
