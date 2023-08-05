@@ -72,7 +72,7 @@ type = "pycharm"
 
 
 @pytest.fixture
-def jdk_xml() -> Element:
+def jdk_element() -> Element:
     return fromstring(
         r"""<jdk version="2">
       <name value="hatch-pycharm" />
@@ -233,7 +233,7 @@ def jdk_xml() -> Element:
 
 
 @pytest.fixture
-def misc_xml() -> Element:
+def misc_element() -> Element:
     return fromstring(
         r"""<?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
