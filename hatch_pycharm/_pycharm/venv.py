@@ -55,7 +55,6 @@ class PyCharmVenv:
     def _build_misc_element(self) -> Element:
         """Returns the ElementTree object for the tree xml"""
         project = Element("project", version="4")
-        project
         SubElement(
             project,
             "component",
