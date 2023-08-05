@@ -7,6 +7,7 @@ from itertools import chain
 from pathlib import Path
 from typing import Iterable
 from xml.etree.ElementTree import Element, SubElement, tostring
+from hatch_pycharm._pycharm import _PYCHARM
 
 log = logging.getLogger(__name__)
 
@@ -46,6 +47,15 @@ class PyCharmVenv:
 
     def _helpers_dir_roots(self) -> Iterable[Path]:
         """Walks the $APP_HOME_DIR/plugins/python/helpers dir to build part of the `root` objects"""
+        base = Path(_PYCHARM)
+        helpers = base.parent.parent / "plugins" / "python" / "helpers"
+        assert helpers.is_dir()
+        type_shed = helpers / "typeshed"
+        yield helpers / "python-skeletons"
+        yield type_shed / "stdlib"
+        stubs_dir = type_shed / "stubs"
+        assert stubs_dir.is_dir()
+        yield from filter(lambda x: x.is_dir(), stubs_dir.iterdir())
 
     def build_jdk_xml(self):
         """Goes to  $PycharmConfig/options/jdk.table.xml"""
