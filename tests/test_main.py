@@ -1,4 +1,6 @@
 import subprocess
+from pathlib import Path
+from unittest.mock import MagicMock, ANY
 
 import pytest
 from click.testing import CliRunner
@@ -9,7 +11,7 @@ class TestException(BaseException):
 
 
 @pytest.fixture()
-def mock_run(monkeypatch):
+def mock_run(monkeypatch) -> MagicMock:
     from unittest.mock import create_autospec
 
     original_subprocess_run = subprocess.run
@@ -52,4 +54,7 @@ def test_subprocess_run_is_called(new_project, mock_run):
     with pytest.raises(TestException):
         # noinspection PyTypeChecker
         runner.invoke(hatch, ["run", "echo", "a"], catch_exceptions=False)
-    mock_run
+    mock_run.assert_called_once()
+    exe_location, detected_location = map(Path, mock_run.call_args[0][0])
+    assert detected_location == new_project
+    assert exe_location.is_file()
