@@ -4,13 +4,15 @@
 
 import shutil
 import sys
-
 from pathlib import Path
 from tempfile import TemporaryDirectory
-
-import pytest
+from typing import TYPE_CHECKING
 from xml.etree.ElementTree import fromstring, Element
 
+import pytest
+
+if TYPE_CHECKING:
+    from hatch_pycharm._pycharm.venv import PyCharmVenv
 ROOT = Path(__file__).parent.parent
 
 
@@ -73,10 +75,10 @@ type = "pycharm"
 
 
 @pytest.fixture
-def test_venv():
-    from hatch_pycharm._pycharm import venv
+def test_venv() -> "PyCharmVenv":
+    from hatch_pycharm._pycharm.venv import PyCharmVenv
 
-    yield venv.PyCharmVenv(Path(sys.executable), sys.version)
+    yield PyCharmVenv("", Path(sys.executable))
 
 
 @pytest.fixture
