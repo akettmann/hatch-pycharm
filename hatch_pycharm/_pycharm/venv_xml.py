@@ -54,7 +54,7 @@ class PythonConfigVars:
     import json
     import sysconfig
     import sys
-    json.dump(sysconfig.get_config_vars({keys}), sys.stdout)"""
+    json.dump(sysconfig.get_config_vars(), sys.stdout)"""
     prefix: Path = r"C:\Users\veigar\PycharmProjects\hatch-pycharm\.hatch\hatch-pycharm"
     exec_prefix: Path = r"C:\Users\veigar\PycharmProjects\hatch-pycharm\.hatch\hatch-pycharm"
     py_version: str = "3.11.3"
