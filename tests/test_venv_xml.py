@@ -1,4 +1,4 @@
-def test_jdk_element_matches(jdk_element, current_project_venv):
+def test_jdk_element_matches(jdk_element, current_project_venv, current_jdk_element):
     current_project_venv.name = "Python 3.11 (hatch-pycharm)"
 
     assert current_project_venv._build_jdk_element() == jdk_element
