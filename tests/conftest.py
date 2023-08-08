@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2022 Hynek Schlawack <hs@ox.cx>
 #
 # SPDX-License-Identifier: MIT
-
 import shutil
 import sys
 from pathlib import Path
@@ -10,9 +9,11 @@ from xml.etree.ElementTree import fromstring, Element
 
 import pytest
 
+from hatch_pycharm._pycharm import settings
 from hatch_pycharm._pycharm.venv_xml import PyCharmVenv, PythonConfigVars
 
 ROOT = Path(__file__).parent.parent
+assc_project_path = "ASSOCIATED_PROJECT_PATH"
 
 
 @pytest.fixture(name="plugin_dir")
@@ -74,7 +75,7 @@ type = "pycharm"
 
 
 @pytest.fixture
-def current_project_venv() -> "PyCharmVenv":
+def current_project_venv(current_project_misc_file) -> "PyCharmVenv":
     from hatch_pycharm._pycharm.venv_xml import PyCharmVenv
 
     yield PyCharmVenv("Python 3.11 (hatch-pycharm)", Path(sys.executable), ROOT)
@@ -331,5 +332,29 @@ def current_project_misc_file() -> Element:
 
 
 @pytest.fixture()
-def current_project_tools_jdk_file() -> Element:
-    pass
+def current_tools_jdk_file() -> Element:
+    yield fromstring(settings.jdk_tools_xml.read_text())
+
+
+def jetbrains_path_render(jb_path: str) -> Path:
+    user_home = str(Path.home())
+    app_home = str(settings.config_dir)
+    jb_path = jb_path.replace("$APPLICATION_HOME_DIR$", app_home)
+    jb_path = jb_path.replace("$USER_HOME$", user_home)
+    return Path(jb_path).resolve()
+
+
+@pytest.fixture()
+def current_jdk_element(current_tools_jdk_file, current_project_venv) -> Element:
+    current_project_venv.sdk_uuid
+    for jdk_elem in current_tools_jdk_file.iterfind(f".//jdk"):
+        addl = jdk_elem.find("./additional")
+        project_path = addl.attrib.get(assc_project_path)
+        project_path = jetbrains_path_render(project_path)
+        hp = jdk_elem.find("./homePath")
+        home_path = hp.attrib.get("value")
+        home_path = jetbrains_path_render(home_path)
+        if project_path == current_project_venv.associated_project_path and home_path == current_project_venv.exe_loc:
+            yield jdk_elem
+            # Don't keep trying to find stuff after we have returned something
+            break
