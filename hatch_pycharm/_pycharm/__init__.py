@@ -1,15 +1,25 @@
 """This is where we find PyCharms versions that are available and pick the winner"""
 
 import logging
+import os.path
 import shutil
 from collections.abc import Iterable
+from dataclasses import dataclass
 from functools import wraps
 from itertools import chain
 from pathlib import Path
 from typing import NamedTuple
+from xml.etree.ElementTree import Element
 
 from hatch_pycharm._pycharm.jetbrains import find_executable as jb_find
-from hatch_pycharm._pycharm.platform_paths import platform_search_paths, platform_exe_name
+from hatch_pycharm._pycharm.platform_paths import (
+    platform_search_paths,
+    platform_exe_name,
+    platform_config_dir,
+    platform_system_dir,
+    platform_plugin_dir,
+    platform_log_dir,
+)
 from hatch_pycharm._pycharm.toolbox import find_executable as tb_find
 from hatch_pycharm._pycharm.types import FMT
 
@@ -29,9 +39,51 @@ def locate_pycharm():
     return pycharm
 
 
+@dataclass(frozen=True, slots=True)
+class _PycharmSettings:
+    """A Singleton class to hold the detected settings for Pycharm"""
+
+    pycharm_exe: Path
+    config_dir: Path
+    system_dir: Path
+    plugins_dir: Path
+    logs_dir: Path
+
+    @property
+    def jdk_tools_xml(self) -> Path:
+        return self.config_dir / "options/jdk.table.xml"
+
+    @classmethod
+    def resolve_paths(cls, version: str = "2023.2"):
+        product, version = "PyCharm", version
+        return cls(
+            pycharm_exe=locate_pycharm(),
+            config_dir=cls.expand_verify(platform_config_dir(), product, version),
+            system_dir=cls.expand_verify(platform_system_dir(), product, version),
+            plugins_dir=cls.expand_verify(platform_plugin_dir(), product, version),
+            logs_dir=cls.expand_verify(platform_log_dir(), product, version),
+        )
+
+    @staticmethod
+    def expand_verify(path_: str, product: str, version: str):
+        expand_vars = os.path.expandvars(path_)
+        log.debug(f"Expanding environment variables: `%s` -> `%s`", path_, expand_vars)
+        formatted = expand_vars.format(product=product, version=version)
+        log.debug(f"Formatted Product and version: `%s` -> `%s`", expand_vars, formatted)
+        expanded_path = Path(formatted).resolve()
+        if not expanded_path.exists():
+            log.warning("Expanded path `%s` to `%s` but it does not appear to exist!", path_, expanded_path)
+        return expanded_path
+
+    def get_jdk_entry_for_environment(self, unique_id) -> Element:
+        pass
+
+
+settings = _PycharmSettings.resolve_paths()
 pycharm_exe = locate_pycharm()
 app_root = pycharm_exe.parent.parent
 plugins_folder = app_root / "plugins"
+jdk_table_xml = app_root / "options/jdk.table.xml"
 _PYCHARM = str(pycharm_exe)
 
 
